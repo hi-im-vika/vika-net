@@ -4,7 +4,7 @@
  * vika <https://github.com/hi-im-vika>
  */
 
-#include "../include/CUDPServer.h"
+#include "../include/CUDPServer.hpp"
 
 CUDPServer::CUDPServer() = default;
 
