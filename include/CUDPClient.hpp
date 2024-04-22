@@ -32,6 +32,13 @@ private:
     ssize_t _bytes_moved = 0;
     struct sockaddr_in _server_addr{};
     socklen_t _server_addr_len = 0;
+
+    // response time measurement
+    bool _can_begin_packet_counter = true;
+    std::chrono::steady_clock::time_point _time_since_packet_sent;
+    int _look_for_this_packet = 0;
+    int _packet_counter = 0;
+
 public:
     CUDPClient();
     ~CUDPClient();

@@ -43,21 +43,37 @@ bool CUDPServer::init_net() {
 }
 
 bool CUDPServer::do_rx(
-        std::vector<uint8_t> &rx_buf,
+        std::vector<uint8_t> &rx_processed,
         sockaddr_in &src,
         long &rx_bytes) {
+    std::vector<uint8_t> rx_buf;
     rx_buf.clear();
     rx_buf.resize(UDP_MAX_SIZE);
+    _rx_code = 0;
 
     // listen for client
     _client_addr_len = sizeof(_client_addr);
-    _read_code = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
-    if (_read_code < 0) {
+    _rx_code = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
+    if (_rx_code < 0) {
         spdlog::error("Error reading data.");
         close(_socket_fd);
         return false;
     }
-    rx_bytes = _read_code;
+    auto data_begin = std::find(rx_buf.begin(),rx_buf.end(),'|');
+    if (data_begin++ == rx_buf.end()) {
+        spdlog::error("Separator not found");
+        exit(0);
+    }
+
+    _packet_counter = std::stoi(std::string(rx_buf.begin() + 1,data_begin - 1));
+    std::vector<uint8_t> actual_data(data_begin,rx_buf.begin() + _rx_code);
+    if(actual_data.at(0) == '\5') {
+        spdlog::info("sending ping");
+        std::string header_ctr("C" + std::to_string(_packet_counter) + "|" + "\6");
+        do_tx(std::vector<uint8_t>(header_ctr.begin(), header_ctr.end()), _client_addr);
+    }
+    rx_processed = actual_data;
+    rx_bytes = actual_data.size();
     src = _client_addr;
     return true;
 }
