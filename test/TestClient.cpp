@@ -67,10 +67,6 @@ int main(int argc, char *argv[]) {
     std::thread thread_for_sending(do_send, &c, &tx_queue);
     thread_for_sending.detach();
 
-
-    // tell server to start streaming data
-    tx_queue.emplace("G 0");
-
     while(!stop_main) {
         for (; !rx_queue.empty(); rx_queue.pop()) {
 
@@ -93,18 +89,17 @@ int main(int argc, char *argv[]) {
             } while (!c.get_socket_status());
             send_data = c.get_socket_status();
             timeout_count = std::chrono::steady_clock::now();
-            tx_queue.emplace("G 0");
         }
 
         // send alive ping
-        tx_queue.emplace("A 0");
-        tx_queue.emplace("S 1 103 204 4444 24 8");
+        tx_queue.emplace("DATADATADATADATA");
+        tx_queue.emplace("1234567890");
 
         std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
     }
 
     spdlog::info("Stopping nicely");
-    tx_queue.emplace("S 0");
+    tx_queue.emplace("");
 
     // wait for send stop...
     std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(100));
