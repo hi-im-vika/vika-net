@@ -57,6 +57,11 @@ bool CUDPServer::do_rx(
         close(_socket_fd);
         return false;
     }
+    if (rx_buf.at(2) == '\5') {
+        // ping packet detected
+        std::string ping_string = "C|\6";
+        do_tx(std::vector<uint8_t>(ping_string.begin(),ping_string.end()),_client_addr);
+    }
     rx_bytes = _read_code;
     src = _client_addr;
     return true;
