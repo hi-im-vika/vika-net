@@ -76,56 +76,59 @@ int main() {
             spdlog::info("New in RX queue: " + rx_queue.front());
             spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
 
-            // respond to ping
-            if(rx_queue.front()[0] == '\5') {
-                tx_queue.emplace("\6");
-                // it's just a ping packet, move on
-                continue;
-            }
+            // Return data received from client
+            tx_queue.emplace(rx_queue.front());
 
-            std::string action = rx_queue.front().substr(0,3);
-
-            // respond to i'm alive command
-            if(action == "A 0") {
-                timeout_count = std::chrono::steady_clock::now();
-                continue;
-            }
-
-            // respond to begin get data command
-            if(action == "S 1") {
+//            // respond to ping
+//            if(rx_queue.front()[0] == '\5') {
+//                tx_queue.emplace("\6");
+//                // it's just a ping packet, move on
+//                continue;
+//            }
+//
+//            std::string action = rx_queue.front().substr(0,3);
+//
+//            // respond to i'm alive command
+//            if(action == "A 0") {
+//                timeout_count = std::chrono::steady_clock::now();
+//                continue;
+//            }
+//
+//            // respond to begin get data command
+//            if(action == "S 1") {
+////                send_data = false;
+////                std::stringstream ss;
+////                std::string temp;
+////                ss.str(rx_queue.front());
+////                while(ss >> temp) {
+////                    spdlog::info(temp);
+////                }
+//                spdlog::info(rx_queue.front());
+//                continue;
+//            }
+//
+//            // respond to begin get data command
+//            if(action == "S 0") {
 //                send_data = false;
-//                std::stringstream ss;
-//                std::string temp;
-//                ss.str(rx_queue.front());
-//                while(ss >> temp) {
-//                    spdlog::info(temp);
-//                }
-                spdlog::info(rx_queue.front());
-                continue;
-            }
-
-            // respond to begin get data command
-            if(action == "S 0") {
-                send_data = false;
-                continue;
-            }
-
-            // respond to begin get data command
-            if(action == "G 0") {
-                send_data = true;
-                timeout_count = std::chrono::steady_clock::now();
-                continue;
-            }
+//                continue;
+//            }
+//
+//            // respond to begin get data command
+//            if(action == "G 0") {
+//                send_data = true;
+//                timeout_count = std::chrono::steady_clock::now();
+//                continue;
+//            }
         }
 
-        time_since_start = (int) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeout_count).count();
-        if (send_data) {
-//            spdlog::info("Time since last client data: " + std::to_string(time_since_start));
-            if (time_since_start > PING_TIMEOUT) {
-                spdlog::warn("Client is gone...");
-                send_data = false;
-            }
-        }
+//        time_since_start = (int) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeout_count).count();
+//        if (send_data) {
+////            spdlog::info("Time since last client data: " + std::to_string(time_since_start));
+//            if (time_since_start > PING_TIMEOUT) {
+//                spdlog::warn("Client is gone...");
+//                send_data = false;
+//            }
+//        }
 //        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
     }
 
