@@ -11,6 +11,7 @@
 #include "../include/CUDPServer.hpp"
 
 #define PING_TIMEOUT 1000
+#define NET_DELAY 1
 
 volatile sig_atomic_t stop;
 volatile bool send_data = false;
@@ -30,7 +31,7 @@ void do_listen(CUDPServer *s, std::queue<std::string> *q, sockaddr_in *src) {
         std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
 //        spdlog::info("Recieved " + std::to_string(rx_bytes) + " bytes");
         q->emplace(temp);
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 }
 
@@ -43,7 +44,7 @@ void do_send(CUDPServer *s, std::queue<std::string> *q, sockaddr_in *dst) {
             std::vector<uint8_t> tx_buf(q->front().begin(),q->front().end());
             s->do_tx(tx_buf,*dst);
         }
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 }
 
@@ -126,7 +127,7 @@ int main() {
                 send_data = false;
             }
         }
-//        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 
     spdlog::info("Stopping nicely");

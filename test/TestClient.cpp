@@ -9,6 +9,9 @@
 
 #include "../include/CUDPClient.hpp"
 
+#define PING_TIMEOUT 1000
+#define NET_DELAY 10
+
 volatile sig_atomic_t stop;
 volatile bool send_data = true;
 volatile bool stop_main = false;
@@ -29,7 +32,7 @@ void do_listen(CUDPClient *c, std::queue<std::string> *q) {
         std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
 //        spdlog::info("Recieved " + std::to_string(rx_bytes) + " bytes");
         q->emplace(temp);
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 }
 
@@ -40,7 +43,7 @@ void do_send(CUDPClient *c, std::queue<std::string> *q) {
             std::vector<uint8_t> tx_buf(q->front().begin(),q->front().end());
             c->do_tx(tx_buf);
         }
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 }
 
@@ -67,7 +70,6 @@ int main(int argc, char *argv[]) {
     std::thread thread_for_sending(do_send, &c, &tx_queue);
     thread_for_sending.detach();
 
-
     // tell server to start streaming data
     tx_queue.emplace("G 0");
 
@@ -84,7 +86,7 @@ int main(int argc, char *argv[]) {
         }
 
         time_since_start = (int) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timeout_count).count();
-        if (time_since_start > 1000) {
+        if (time_since_start > PING_TIMEOUT) {
             spdlog::warn("Server is gone...");
             send_data = false;
             do {
@@ -98,9 +100,9 @@ int main(int argc, char *argv[]) {
 
         // send alive ping
         tx_queue.emplace("A 0");
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
         tx_queue.emplace("S 1 103 204 4444 24 8");
-
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 
     spdlog::info("Stopping nicely");
