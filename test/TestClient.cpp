@@ -24,7 +24,7 @@ void do_listen(CUDPClient *c, std::queue<std::string> *q) {
     while (stop != 1) {
         rx_bytes = 0;
         rx_buf.clear();
-        spdlog::info("Listening");
+//        spdlog::info("Listening");
         c->do_rx(rx_buf,rx_bytes);
         std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
 //        spdlog::info("Recieved " + std::to_string(rx_bytes) + " bytes");
@@ -36,7 +36,7 @@ void do_listen(CUDPClient *c, std::queue<std::string> *q) {
 void do_send(CUDPClient *c, std::queue<std::string> *q) {
     while (stop != 1) {
         for (; !q->empty(); q->pop()) {
-            spdlog::info("Sending");
+//            spdlog::info("Sending");
             std::vector<uint8_t> tx_buf(q->front().begin(),q->front().end());
             c->do_tx(tx_buf);
         }
@@ -92,7 +92,9 @@ int main(int argc, char *argv[]) {
         }
 
         // send current time in milliseconds since epoch
-        tx_queue.emplace(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
+        auto now = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+        spdlog::info(now);
+        tx_queue.emplace(now);
 
         std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(10));
     }

@@ -25,6 +25,7 @@ void do_listen(CUDPServer *s, std::queue<std::string> *q, sockaddr_in *src) {
     while (stop != 1) {
         rx_bytes = 0;
         rx_buf.clear();
+//        spdlog::info("Listening");
         s->do_rx(rx_buf, *src, rx_bytes);
         std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
         if (!temp.empty()) q->emplace(temp);
@@ -37,7 +38,7 @@ void do_send(CUDPServer *s, std::queue<std::string> *q, sockaddr_in *dst) {
     while (stop != 1) {
         if (send_data) q->emplace(std::to_string(number++));
         for (; !q->empty(); q->pop()) {
-            spdlog::info("Sending");
+//            spdlog::info("Sending");
             std::vector<uint8_t> tx_buf(q->front().begin(),q->front().end());
             s->do_tx(tx_buf,*dst);
         }
@@ -73,7 +74,7 @@ int main() {
             // acknowledge next data in queue
 //            spdlog::info("New in RX queue: " + rx_queue.front());
 //            spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
-
+            spdlog::info(rx_queue.front());
             // Return data received from client
             tx_queue.emplace(rx_queue.front());
 
