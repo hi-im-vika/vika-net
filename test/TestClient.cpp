@@ -71,8 +71,8 @@ int main(int argc, char *argv[]) {
         for (; !rx_queue.empty(); rx_queue.pop()) {
 
             // acknowledge next data in queue
-            spdlog::info("New in RX queue: " + rx_queue.front());
-            spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
+//            spdlog::info("New in RX queue: " + rx_queue.front());
+//            spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
 
             // reset timeout
             // placement of this may be a source of future bug
