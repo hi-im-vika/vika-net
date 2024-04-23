@@ -38,7 +38,7 @@ void do_listen(CUDPServer *s, std::queue<std::string> *q, sockaddr_in *src) {
 void do_send(CUDPServer *s, std::queue<std::string> *q, sockaddr_in *dst) {
     int number = 0;
     while (stop != 1) {
-        if (send_data) q->emplace(std::to_string(number++));
+        if (send_data) q->emplace("sample text");
         for (; !q->empty(); q->pop()) {
             spdlog::info("Sending");
             std::vector<uint8_t> tx_buf(q->front().begin(),q->front().end());
