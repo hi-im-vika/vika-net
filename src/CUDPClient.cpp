@@ -73,7 +73,7 @@ void CUDPClient::setdn() const {
 
 bool CUDPClient::ping() {
     // send prefix and ENQ
-    std::string buffer = "C|\5";
+    std::string buffer = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) + " \5";
 
     if (!(sendto(_socket_fd, buffer.data(), buffer.size(), 0,
                 (struct sockaddr *) &_server_addr, sizeof(_server_addr)))) {
