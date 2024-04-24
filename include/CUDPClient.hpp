@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <spdlog/spdlog.h>
+#include <queue>
 
 class CUDPClient {
 private:
@@ -30,8 +31,12 @@ private:
     int _socket_fd = 0;
     bool _socket_ok = false;
     ssize_t _bytes_moved = 0;
+    ssize_t _rx_code = 0;
+    ssize_t _tx_code = 0;
     struct sockaddr_in _server_addr{};
     socklen_t _server_addr_len = 0;
+    int _response_time_ms = 0;
+
 public:
     CUDPClient();
     ~CUDPClient();
@@ -42,4 +47,5 @@ public:
     bool ping();
 
     bool get_socket_status();
+    int get_last_response_time();
 };

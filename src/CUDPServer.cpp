@@ -43,29 +43,58 @@ bool CUDPServer::init_net() {
 }
 
 bool CUDPServer::do_rx(
-        std::vector<uint8_t> &rx_buf,
+        std::vector<uint8_t> &rx_processed,
         sockaddr_in &src,
         long &rx_bytes) {
-    rx_buf.clear();
-    rx_buf.resize(UDP_MAX_SIZE);
+    std::vector<uint8_t> rx_raw;
+    rx_raw.clear();
+    rx_raw.resize(UDP_MAX_SIZE);
 
     // listen for client
     _client_addr_len = sizeof(_client_addr);
-    _read_code = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
-    if (_read_code < 0) {
+    _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
+    if (_rx_code < 0) {
         spdlog::error("Error reading data.");
         close(_socket_fd);
         return false;
     }
-    rx_bytes = _read_code;
+
+    // turn rx into ss
+    std::stringstream rx_raw_ss(std::string(rx_raw.begin(),rx_raw.begin() + _rx_code));
+
+    // split ss into time and data
+    std::string time, data;
+    rx_raw_ss >> time;
+    _rx_time_queue.emplace(time);
+    rx_raw_ss >> data;
+    if (data.empty()) {
+        spdlog::error("Malformed data received");
+        return false;
+    }
+
+    // respond if ping
+    if (data == "\5") {
+        spdlog::info("Sending ping");
+        std::string ping_string("\6");
+        do_tx(std::vector<uint8_t> (ping_string.begin(), ping_string.end()),_client_addr);
+    }
+
+    rx_processed = std::vector<uint8_t>(data.begin(),data.end());
+    rx_bytes = (long) data.length();
     src = _client_addr;
     return true;
 }
 
 bool CUDPServer::do_tx(const std::vector<uint8_t> &tx_buf,
                        sockaddr_in &dst) {
+    if (_rx_time_queue.empty()) return false;
+    if (tx_buf.empty()) return false;
+    std::vector<uint8_t> tx_this(_rx_time_queue.front().begin(),_rx_time_queue.front().end());
+    _rx_time_queue.pop();
+    tx_this.emplace_back(' ');
+    tx_this.insert(tx_this.end(),tx_buf.begin(),tx_buf.end());
     // respond to client
-    if (sendto(_socket_fd, tx_buf.data(), tx_buf.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) <
+    if (sendto(_socket_fd, tx_this.data(), tx_this.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) <
         0) {
         spdlog::error("Error sending data.");
         close(_socket_fd);
