@@ -99,12 +99,17 @@ bool CUDPClient::ping() {
         }
     }
 
-    auto data_begin = std::find(buffer.begin(), buffer.end(), '|');
-    if (data_begin++ == buffer.end()) {
-        spdlog::error("Cannot find separator");
-        return false;
-    }
-    return (*(data_begin) == '\6');
+    // turn rx into ss
+    std::stringstream rx_raw(std::string(buffer.begin(),buffer.begin() + _bytes_moved));
+
+    // split ss into time and data
+    std::string time, data;
+    rx_raw >> time;
+    spdlog::info("[" + time + "]");
+    rx_raw >> data;
+    spdlog::info("[" + data + "]");
+
+    return (data == "\6");
 }
 
 bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
