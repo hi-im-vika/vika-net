@@ -72,10 +72,9 @@ void CUDPClient::setdn() const {
 }
 
 bool CUDPClient::ping() {
-    std::string ping_string = "C|\5";
-    std::vector<uint8_t> buffer(ping_string.begin(), ping_string.end());
+    std::string buffer = "C|\5";
 
-    if (!(sendto(_socket_fd, buffer.data(), buffer.capacity(), 0,
+    if (!(sendto(_socket_fd, buffer.data(), buffer.size(), 0,
                 (struct sockaddr *) &_server_addr, sizeof(_server_addr)))) {
         spdlog::error("General error during ping tx");
         return false;
@@ -85,10 +84,11 @@ bool CUDPClient::ping() {
     _bytes_moved = 0;
 
     auto ping_timeout_start = std::chrono::steady_clock::now();
+    buffer.clear();
 
     // spins until ping response or timeout
     while (_bytes_moved <= 0) {
-        _bytes_moved = recvfrom(_socket_fd, buffer.data(), buffer.capacity(), 0,
+        _bytes_moved = recvfrom(_socket_fd, buffer.data(), buffer.size(), 0,
                                 (struct sockaddr *) &_server_addr, &_server_addr_len);
         if ((int) std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - ping_timeout_start).count() > PING_TIMEOUT) {
@@ -96,7 +96,6 @@ bool CUDPClient::ping() {
             return false;
         }
     }
-
     return (buffer.at(2) == '\6');
 }
 
