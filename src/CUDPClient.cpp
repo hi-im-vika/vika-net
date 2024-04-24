@@ -145,8 +145,8 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
         return false;
     }
 
-    rx_buf = std::vector<uint8_t>(data.begin(), data.end());
-    rx_bytes = (long) data.length();
+    rx_buf = std::vector<uint8_t>(rx_raw.begin() + (int) time.length() + 1, rx_raw.end());
+    rx_bytes = (long) (rx_raw.end() -  (rx_raw.begin() + (int) time.length() + 1));
     return true;
 }
 
