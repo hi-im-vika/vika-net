@@ -43,26 +43,45 @@ bool CUDPServer::init_net() {
 }
 
 bool CUDPServer::do_rx(
-        std::vector<uint8_t> &rx_buf,
+        std::vector<uint8_t> &rx_processed,
         sockaddr_in &src,
         long &rx_bytes) {
-    rx_buf.clear();
-    rx_buf.resize(UDP_MAX_SIZE);
+    std::vector<uint8_t> rx_raw;
+    rx_raw.clear();
+    rx_raw.resize(UDP_MAX_SIZE);
 
     // listen for client
     _client_addr_len = sizeof(_client_addr);
-    _rx_code = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
+    _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
     if (_rx_code < 0) {
         spdlog::error("Error reading data.");
         close(_socket_fd);
         return false;
     }
-    if (rx_buf.at(2) == '\5') {
-        // ping packet detected
-        std::string ping_string = "C|\6";
-        do_tx(std::vector<uint8_t>(ping_string.begin(),ping_string.end()),_client_addr);
+
+    // turn rx into ss
+    std::stringstream rx_raw_ss(std::string(rx_raw.begin(),rx_raw.begin() + _rx_code));
+
+    // split ss into time and data
+    std::string time, data;
+    rx_raw_ss >> time;
+    spdlog::info("[" + time + "]");
+    rx_raw_ss >> data;
+    if (data.empty()) {
+        spdlog::error("Malformed data received");
+        return false;
     }
-    rx_bytes = _read_code;
+    spdlog::info("[" + data + "]");
+
+    // respond if ping
+    if (data == "\5") {
+        spdlog::info("Sending ping");
+        std::string ping_string(time + " \6");
+        do_tx(std::vector<uint8_t> (ping_string.begin(), ping_string.end()),_client_addr);
+    }
+
+    rx_processed = std::vector<uint8_t>(data.begin(),data.end());
+    rx_bytes = (long) data.length();
     src = _client_addr;
     return true;
 }
