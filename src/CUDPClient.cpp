@@ -142,9 +142,15 @@ bool CUDPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
         return false;
     }
 
+    std::string now = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) + " ";;
+    std::vector<uint8_t> tx_this(now.begin(), now.end());
+    tx_this.insert(tx_this.end(),tx_buf.begin(),tx_buf.end());
+
     // send message to server
-    _tx_code = sendto(_socket_fd, tx_buf.data(), tx_buf.size(), 0,
+    _tx_code = sendto(_socket_fd, tx_this.data(), tx_this.size(), 0,
                           (struct sockaddr *) &_server_addr, _server_addr_len);
+
+    spdlog::info("[" + std::string(tx_this.begin(),tx_this.end()) + "]");
 
     // if problem with sending data, return false
     if (_tx_code < 0) {
