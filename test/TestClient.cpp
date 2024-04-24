@@ -11,7 +11,7 @@
 #include "../include/CUDPClient.hpp"
 
 #define PING_TIMEOUT 1000
-#define NET_DELAY 10
+#define NET_DELAY 35
 
 volatile sig_atomic_t stop;
 volatile bool send_data = true;
