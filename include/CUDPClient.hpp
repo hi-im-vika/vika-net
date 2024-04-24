@@ -35,6 +35,7 @@ private:
     ssize_t _tx_code = 0;
     struct sockaddr_in _server_addr{};
     socklen_t _server_addr_len = 0;
+    int _response_time_ms = 0;
 
 public:
     CUDPClient();
@@ -46,4 +47,5 @@ public:
     bool ping();
 
     bool get_socket_status();
+    int get_last_response_time();
 };

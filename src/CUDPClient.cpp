@@ -137,6 +137,9 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     std::string time, data;
     rx_raw_ss >> time;
     rx_raw_ss >> data;
+
+    // measure response time
+    _response_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - std::stol(time);
     if (data.empty()) {
         spdlog::error("Malformed data received");
         return false;
@@ -172,4 +175,8 @@ bool CUDPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
 
 bool CUDPClient::get_socket_status() {
     return _socket_ok;
+}
+
+int CUDPClient::get_last_response_time() {
+    return _response_time_ms;
 }
