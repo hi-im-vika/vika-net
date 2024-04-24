@@ -98,6 +98,7 @@ int main(int argc, char *argv[]) {
         // send current time as payload
 //        tx_queue.emplace(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
         tx_queue.emplace("asdf");
+        spdlog::info("Last response time (ms): " + std::to_string(c.get_last_response_time()));
         std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 
