@@ -105,9 +105,7 @@ bool CUDPClient::ping() {
     // split ss into time and data
     std::string time, data;
     rx_raw >> time;
-    spdlog::info("[" + time + "]");
     rx_raw >> data;
-    spdlog::info("[" + data + "]");
 
     return (data == "\6");
 }
@@ -138,13 +136,11 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     // split ss into time and data
     std::string time, data;
     rx_raw_ss >> time;
-    spdlog::info("[" + time + "]" + " DELAY: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - std::stol(time)));
     rx_raw_ss >> data;
     if (data.empty()) {
         spdlog::error("Malformed data received");
         return false;
     }
-    spdlog::info("[" + data + "]");
 
     rx_buf = std::vector<uint8_t>(data.begin(), data.end());
     rx_bytes = (long) data.length();
@@ -165,8 +161,6 @@ bool CUDPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
     // send message to server
     _tx_code = sendto(_socket_fd, tx_this.data(), tx_this.size(), 0,
                           (struct sockaddr *) &_server_addr, _server_addr_len);
-
-    spdlog::info("[" + std::string(tx_this.begin(),tx_this.end()) + "]");
 
     // if problem with sending data, return false
     if (_tx_code < 0) {

@@ -28,7 +28,7 @@ void do_listen(CUDPClient *c, std::queue<std::string> *q) {
     while (stop != 1) {
         rx_bytes = 0;
         rx_buf.clear();
-        spdlog::info("Listening");
+//        spdlog::info("Listening");
         c->do_rx(rx_buf,rx_bytes);
         std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
         // only add to rx queue if data is not empty
@@ -40,7 +40,7 @@ void do_listen(CUDPClient *c, std::queue<std::string> *q) {
 void do_send(CUDPClient *c, std::queue<std::string> *q) {
     while (stop != 1) {
         for (; !q->empty(); q->pop()) {
-            spdlog::info("Sending");
+//            spdlog::info("Sending");
             std::vector<uint8_t> tx_buf(q->front().begin(),q->front().end());
             c->do_tx(tx_buf);
         }
@@ -74,9 +74,9 @@ int main(int argc, char *argv[]) {
     while(!stop_main) {
         for (; !rx_queue.empty(); rx_queue.pop()) {
 
-            // acknowledge next data in queue
-            spdlog::info("New in RX queue: " + rx_queue.front());
-            spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
+//            // acknowledge next data in queue
+//            spdlog::info("New in RX queue: " + rx_queue.front());
+//            spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
 
             // reset timeout
             // placement of this may be a source of future bug
