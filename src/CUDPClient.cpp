@@ -139,7 +139,7 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     rx_raw_ss >> data;
 
     // measure response time
-    _response_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - std::stol(time);
+    _response_time_ms = (int) (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - std::stol(time));
     if (data.empty()) {
         spdlog::error("Malformed data received");
         return false;
