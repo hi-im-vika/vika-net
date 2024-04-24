@@ -25,7 +25,7 @@ private:
 
     int _port = 0;
     int _socket_fd = 0;
-    ssize_t _read_code = 0;
+    ssize_t _rx_code = 0;
     struct sockaddr_in _server_addr{};
     struct sockaddr_in _client_addr{};
     socklen_t _client_addr_len = 0;

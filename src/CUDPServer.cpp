@@ -51,8 +51,8 @@ bool CUDPServer::do_rx(
 
     // listen for client
     _client_addr_len = sizeof(_client_addr);
-    _read_code = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
-    if (_read_code < 0) {
+    _rx_code = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
+    if (_rx_code < 0) {
         spdlog::error("Error reading data.");
         close(_socket_fd);
         return false;

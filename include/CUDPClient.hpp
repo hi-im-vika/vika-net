@@ -30,6 +30,8 @@ private:
     int _socket_fd = 0;
     bool _socket_ok = false;
     ssize_t _bytes_moved = 0;
+    ssize_t _rx_code = 0;
+    ssize_t _tx_code = 0;
     struct sockaddr_in _server_addr{};
     socklen_t _server_addr_len = 0;
 

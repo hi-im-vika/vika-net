@@ -109,16 +109,16 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     _server_addr_len = sizeof(_server_addr);
 
     // reset rx return code
-    _bytes_moved = 0;
+    _rx_code = 0;
 
     // spins until complete response
-    while (_bytes_moved <= 0 && _socket_ok) {
+    while (_rx_code <= 0 && _socket_ok) {
         // send data
-        _bytes_moved = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0,
+        _rx_code = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0,
                                 (struct sockaddr *) &_server_addr, &_server_addr_len);
     }
 
-    rx_bytes = _bytes_moved;
+    rx_bytes = _rx_code;
     return true;
 }
 
@@ -130,11 +130,11 @@ bool CUDPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
     }
 
     // send message to server
-    _bytes_moved = sendto(_socket_fd, tx_buf.data(), tx_buf.size(), 0,
+    _tx_code = sendto(_socket_fd, tx_buf.data(), tx_buf.size(), 0,
                           (struct sockaddr *) &_server_addr, _server_addr_len);
 
     // if problem with sending data, return false
-    if (_bytes_moved < 0) {
+    if (_tx_code < 0) {
         spdlog::error("General error during tx");
         return false;
     }
