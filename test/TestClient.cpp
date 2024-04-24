@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <queue>
+#include <csignal>
 
 #include "../include/CUDPClient.hpp"
 
