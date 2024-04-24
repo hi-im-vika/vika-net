@@ -70,7 +70,6 @@ int main(int argc, char *argv[]) {
     // start send thread
     std::thread thread_for_sending(do_send, &c, &tx_queue);
     thread_for_sending.detach();
-
     while(!stop_main) {
         for (; !rx_queue.empty(); rx_queue.pop()) {
 
@@ -94,7 +93,6 @@ int main(int argc, char *argv[]) {
             send_data = c.get_socket_status();
             timeout_count = std::chrono::steady_clock::now();
         }
-
         // send current time as payload
 //        tx_queue.emplace(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
         tx_queue.emplace("asdf");
