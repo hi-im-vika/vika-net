@@ -30,7 +30,7 @@ void do_listen(CUDPClient *c, std::queue<std::string> *q) {
         rx_buf.clear();
         spdlog::info("Listening");
         c->do_rx(rx_buf,rx_bytes);
-        std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);\
+        std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
         // only add to rx queue if data is not empty
         if(!temp.empty()) q->emplace(temp);
         std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
@@ -96,7 +96,8 @@ int main(int argc, char *argv[]) {
         }
 
         // send current time as payload
-        tx_queue.emplace(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
+//        tx_queue.emplace(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
+        tx_queue.emplace("asdf");
         std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 
