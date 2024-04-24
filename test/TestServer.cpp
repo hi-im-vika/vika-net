@@ -71,9 +71,9 @@ int main() {
          */
         for (; !rx_queue.empty(); rx_queue.pop()) {
 
-            // acknowledge next data in queue
-            spdlog::info("New in RX queue: " + rx_queue.front());
-            spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
+//            // acknowledge next data in queue
+//            spdlog::info("New in RX queue: " + rx_queue.front());
+//            spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
 
             // echo client data back to client
             tx_queue.emplace(rx_queue.front());

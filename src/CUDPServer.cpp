@@ -65,14 +65,12 @@ bool CUDPServer::do_rx(
     // split ss into time and data
     std::string time, data;
     rx_raw_ss >> time;
-    spdlog::info("[" + time + "]");
     _rx_time_queue.emplace(time);
     rx_raw_ss >> data;
     if (data.empty()) {
         spdlog::error("Malformed data received");
         return false;
     }
-    spdlog::info("[" + data + "]");
 
     // respond if ping
     if (data == "\5") {
@@ -95,8 +93,6 @@ bool CUDPServer::do_tx(const std::vector<uint8_t> &tx_buf,
     _rx_time_queue.pop();
     tx_this.emplace_back(' ');
     tx_this.insert(tx_this.end(),tx_buf.begin(),tx_buf.end());
-    spdlog::info("BUFFER: " + std::string(tx_buf.begin(), tx_buf.end()));
-    spdlog::info("WILL SEND: " + std::string(tx_this.begin(), tx_this.end()));
     // respond to client
     if (sendto(_socket_fd, tx_this.data(), tx_this.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) <
         0) {
