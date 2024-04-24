@@ -115,8 +115,9 @@ bool CUDPClient::ping() {
 bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
 
     // preallocate receiving buffer
-    rx_buf.clear();
-    rx_buf.resize(UDP_MAX_SIZE);
+    std::vector<uint8_t> rx_raw;
+    rx_raw.clear();
+    rx_raw.resize(UDP_MAX_SIZE);
 
     // get length of server address
     _server_addr_len = sizeof(_server_addr);
@@ -127,11 +128,26 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     // spins until complete response
     while (_rx_code <= 0 && _socket_ok) {
         // send data
-        _rx_code = recvfrom(_socket_fd, rx_buf.data(), rx_buf.capacity(), 0,
+        _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0,
                                 (struct sockaddr *) &_server_addr, &_server_addr_len);
     }
 
-    rx_bytes = _rx_code;
+    // turn rx into ss
+    std::stringstream rx_raw_ss(std::string(rx_raw.begin(),rx_raw.begin() + _rx_code));
+
+    // split ss into time and data
+    std::string time, data;
+    rx_raw_ss >> time;
+    spdlog::info("[" + time + "]" + " DELAY: " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - std::stol(time)));
+    rx_raw_ss >> data;
+    if (data.empty()) {
+        spdlog::error("Malformed data received");
+        return false;
+    }
+    spdlog::info("[" + data + "]");
+
+    rx_buf = std::vector<uint8_t>(data.begin(), data.end());
+    rx_bytes = (long) data.length();
     return true;
 }
 
