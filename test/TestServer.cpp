@@ -26,11 +26,10 @@ void do_listen(CUDPServer *s, std::queue<std::string> *q, sockaddr_in *src) {
     while (stop != 1) {
         rx_bytes = 0;
         rx_buf.clear();
-//        spdlog::info("Listening");
         s->do_rx(rx_buf, *src, rx_bytes);
         std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
-//        spdlog::info("Recieved " + std::to_string(rx_bytes) + " bytes");
-        q->emplace(temp);
+        // only add to rx queue if data is not empty
+        if(!temp.empty()) q->emplace(temp);
         std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 }
