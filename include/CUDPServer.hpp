@@ -30,6 +30,7 @@ private:
     struct sockaddr_in _client_addr{};
     socklen_t _client_addr_len = 0;
     std::vector<uint8_t> _recv_buffer;
+
 public:
     CUDPServer();
     ~CUDPServer();

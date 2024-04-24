@@ -32,6 +32,7 @@ private:
     ssize_t _bytes_moved = 0;
     struct sockaddr_in _server_addr{};
     socklen_t _server_addr_len = 0;
+
 public:
     CUDPClient();
     ~CUDPClient();
