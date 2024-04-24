@@ -72,6 +72,7 @@ void CUDPClient::setdn() const {
 }
 
 bool CUDPClient::ping() {
+    // send prefix and ENQ
     std::string buffer = "C|\5";
 
     if (!(sendto(_socket_fd, buffer.data(), buffer.size(), 0,
@@ -85,6 +86,7 @@ bool CUDPClient::ping() {
 
     auto ping_timeout_start = std::chrono::steady_clock::now();
     buffer.clear();
+    buffer.resize(UDP_MAX_SIZE);
 
     // spins until ping response or timeout
     while (_bytes_moved <= 0) {
@@ -96,7 +98,13 @@ bool CUDPClient::ping() {
             return false;
         }
     }
-    return (buffer.at(2) == '\6');
+
+    auto data_begin = std::find(buffer.begin(), buffer.end(), '|');
+    if (data_begin++ == buffer.end()) {
+        spdlog::error("Cannot find separator");
+        return false;
+    }
+    return (*(data_begin) == '\6');
 }
 
 bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
