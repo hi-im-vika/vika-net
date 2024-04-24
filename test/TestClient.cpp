@@ -33,7 +33,7 @@ void do_listen(CUDPClient *c, std::queue<std::string> *q) {
         std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
         // only add to rx queue if data is not empty
         if(!temp.empty()) q->emplace(temp);
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(1));
     }
 }
 
