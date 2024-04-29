@@ -79,8 +79,8 @@ bool CUDPServer::do_rx(
         do_tx(std::vector<uint8_t> (ping_string.begin(), ping_string.end()),_client_addr);
     }
 
-    rx_processed = std::vector<uint8_t>(data.begin(),data.end());
-    rx_bytes = (long) data.length();
+    rx_processed = std::vector<uint8_t>(rx_raw.begin() + (int) (time.length()) + 1,rx_raw.begin() + _rx_code);
+    rx_bytes = (long) (((rx_raw.begin() + _rx_code) - rx_raw.begin()) - ((rx_raw.begin() + (int) (time.length()) + 1) - rx_raw.begin()));
     src = _client_addr;
     return true;
 }
