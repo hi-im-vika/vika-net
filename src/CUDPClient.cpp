@@ -76,7 +76,7 @@ bool CUDPClient::ping() {
     std::string buffer = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) + " \5";
 
     if (!(sendto(_socket_fd, buffer.data(), buffer.size(), 0,
-                (struct sockaddr *) &_server_addr, sizeof(_server_addr)))) {
+                 (struct sockaddr *) &_server_addr, sizeof(_server_addr)))) {
         spdlog::error("General error during ping tx");
         return false;
     }
@@ -127,7 +127,7 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     while (_rx_code <= 0 && _socket_ok) {
         // send data
         _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0,
-                                (struct sockaddr *) &_server_addr, &_server_addr_len);
+                            (struct sockaddr *) &_server_addr, &_server_addr_len);
     }
 
     if (_rx_code < 0) {
@@ -173,7 +173,7 @@ bool CUDPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
 
     // send message to server
     _tx_code = sendto(_socket_fd, tx_this.data(), tx_this.size(), 0,
-                          (struct sockaddr *) &_server_addr, _server_addr_len);
+                      (struct sockaddr *) &_server_addr, _server_addr_len);
 
     // if problem with sending data, return false
     if (_tx_code < 0) {
