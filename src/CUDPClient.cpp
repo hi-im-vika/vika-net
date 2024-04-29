@@ -130,6 +130,16 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
                                 (struct sockaddr *) &_server_addr, &_server_addr_len);
     }
 
+    if (_rx_code < 0) {
+        spdlog::error("General error during rx");
+        return false;
+    }
+
+    if (!_rx_code) {
+        spdlog::warn("No data received");
+        return false;
+    }
+
     // turn rx into ss
     std::stringstream rx_raw_ss(std::string(rx_raw.begin(),rx_raw.begin() + _rx_code));
 
