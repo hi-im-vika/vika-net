@@ -7,6 +7,7 @@
 #include <iostream>
 #include <queue>
 #include <csignal>
+#include <numeric>
 
 #include "../include/CUDPClient.hpp"
 
@@ -58,6 +59,8 @@ int main(int argc, char *argv[]) {
     std::chrono::steady_clock::time_point timeout_count;
     int time_since_start;
 
+    std::vector<int> _rtimes;
+
     signal(SIGINT, catch_signal);
     CUDPClient c = CUDPClient();
     c.setup(argv[1], argv[2]);
@@ -98,6 +101,13 @@ int main(int argc, char *argv[]) {
 //        tx_queue.emplace(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
         tx_queue.emplace("A1 B1 C1 D1 E1 F1");
         spdlog::info("Last response time (ms): " + std::to_string(c.get_last_response_time()));
+        if(_rtimes.size() < 1000) {
+            _rtimes.push_back(c.get_last_response_time());
+        } else {
+            _rtimes.erase(_rtimes.begin());
+            _rtimes.push_back(c.get_last_response_time());
+        }
+        spdlog::info("Avg response time (ms): {:f}", (float) (std::reduce(_rtimes.begin(), _rtimes.end()) / (float) _rtimes.size()));
         std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
 
