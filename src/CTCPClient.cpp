@@ -40,29 +40,29 @@ bool CTCPClient::init_net() {
     _server_addr.sin_family = AF_INET;
     _server_addr.sin_port = htons(_port);
     _server_addr.sin_addr.s_addr = inet_addr(_host.data());
+    _server_addr_len = sizeof(_server_addr);
 
-    do {
-        spdlog::info("Sending ENQ...");
-        _socket_ok = ping();
-        if (_socket_ok) {
-            spdlog::info("ACK received");
-        } else {
-            spdlog::info("Timeout");
-        }
-    } while (!_socket_ok);
+    // expect -1 here, but why??
+    connect(_socket_fd, (struct sockaddr*)&_server_addr, _server_addr_len);
 
-    spdlog::info("Sending to udp://" + _host + ":" + std::to_string(_port));
+    spdlog::info("Sending to tcp://" + _host + ":" + std::to_string(_port));
+
+    _socket_ok = true;
+
     return true;
 }
 
 void CTCPClient::setup(const std::string &host, const std::string &port) {
-    spdlog::info("Beginning UDP client setup.");
+    spdlog::info("Beginning TCP client setup.");
     _host = host;
     _port = std::stoi(port);
     if (!init_net()) {
-        spdlog::error("Error during UDP client setup. Shutting down!");
+        spdlog::error("Error during TCP client setup. Shutting down!");
         exit(1);
     }
+
+    // need to add small wait or else setup fails (socket doesn't get set up fast enough?)
+    std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(20));
 }
 
 void CTCPClient::setdn() const {
