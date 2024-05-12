@@ -20,7 +20,7 @@ bool CTCPClient::init_net() {
     }
 
     // create new socket, exit on failure
-    if ((_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         spdlog::error("Error opening socket");
         return false;
     }
@@ -178,8 +178,4 @@ bool CTCPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
 
 bool CTCPClient::get_socket_status() {
     return _socket_ok;
-}
-
-int CTCPClient::get_last_response_time() {
-    return _response_time_ms;
 }
