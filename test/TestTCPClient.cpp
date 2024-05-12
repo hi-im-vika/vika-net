@@ -57,11 +57,6 @@ int main(int argc, char *argv[]) {
     std::queue<std::string> tx_queue, rx_queue;
     std::chrono::steady_clock::time_point timeout_count;
 
-    std::string cmd = "G 0";
-    std::vector<uint8_t> sendme(cmd.begin(), cmd.end());
-    std::vector<uint8_t> readme;
-    long read_bytes;
-
     signal(SIGINT, catch_signal);
     CTCPClient c = CTCPClient();
     c.setup(argv[1], argv[2]);
@@ -87,8 +82,7 @@ int main(int argc, char *argv[]) {
             // placement of this may be a source of future bug
             timeout_count = std::chrono::steady_clock::now();
         }
-        // send current time as payload
-//        tx_queue.emplace(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
+        // Send data
         tx_queue.emplace("G 0");
         std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
     }
