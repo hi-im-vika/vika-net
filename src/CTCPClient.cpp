@@ -27,7 +27,12 @@ bool CTCPClient::init_net() {
 
     spdlog::info("Setting socket to nonblocking.");
     int flags = fcntl(_socket_fd, F_GETFL, 0);
-    fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK);
+
+    // set nonblocking
+    if (fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        spdlog::error("Error setting socket to nonblocking");
+        return false;
+    }
 
     spdlog::info("Connecting to " + _host + ":" + std::to_string(_port));
 
