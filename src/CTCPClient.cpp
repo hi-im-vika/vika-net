@@ -69,63 +69,25 @@ void CTCPClient::setdn() const {
     close(_socket_fd);
 }
 
-bool CTCPClient::ping() {
-    // send prefix and ENQ
-    std::string buffer = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) + " \5";
-
-    if (!(sendto(_socket_fd, buffer.data(), buffer.size(), 0,
-                 (struct sockaddr *) &_server_addr, sizeof(_server_addr)))) {
-        spdlog::error("General error during ping tx");
+bool CTCPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
+    // check if socket is ok
+    if (!_socket_ok) {
+        spdlog::error("Socket error during tx");
         return false;
     }
-
-    _server_addr_len = sizeof(_server_addr);
-    _bytes_moved = 0;
-
-    auto ping_timeout_start = std::chrono::steady_clock::now();
-    buffer.clear();
-    buffer.resize(UDP_MAX_SIZE);
-
-    // spins until ping response or timeout
-    while (_bytes_moved <= 0) {
-        _bytes_moved = recvfrom(_socket_fd, buffer.data(), buffer.size(), 0,
-                                (struct sockaddr *) &_server_addr, &_server_addr_len);
-        if ((int) std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now() - ping_timeout_start).count() > PING_TIMEOUT) {
-            spdlog::warn("No response to ping.");
-            return false;
-        }
-    }
-
-    // turn rx into ss
-    std::stringstream rx_raw(std::string(buffer.begin(),buffer.begin() + _bytes_moved));
-
-    // split ss into time and data
-    std::string time, data;
-    rx_raw >> time;
-    rx_raw >> data;
-
-    return (data == "\6");
-}
-
-bool CTCPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
 
     // preallocate receiving buffer
     std::vector<uint8_t> rx_raw;
     rx_raw.clear();
     rx_raw.resize(UDP_MAX_SIZE);
 
-    // get length of server address
-    _server_addr_len = sizeof(_server_addr);
-
     // reset rx return code
     _rx_code = 0;
 
     // spins until complete response
     while (_rx_code <= 0 && _socket_ok) {
-        // send data
-        _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0,
-                            (struct sockaddr *) &_server_addr, &_server_addr_len);
+        // rx data
+        _rx_code = recv(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0);
     }
 
     if (_rx_code < 0) {
@@ -138,22 +100,7 @@ bool CTCPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
         return false;
     }
 
-    // turn rx into ss
-    std::stringstream rx_raw_ss(std::string(rx_raw.begin(),rx_raw.begin() + _rx_code));
-
-    // split ss into time and data
-    std::string time, data;
-    rx_raw_ss >> time;
-    rx_raw_ss >> data;
-
-    // measure response time
-    _response_time_ms = (int) (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - std::stol(time));
-    if (data.empty()) {
-        spdlog::error("Malformed data received");
-        return false;
-    }
-
-    rx_buf = std::vector<uint8_t>(rx_raw.begin() + (int) time.length() + 1, rx_raw.begin() + _rx_code);
+    rx_buf = std::vector<uint8_t>(rx_raw.begin(), rx_raw.begin() + _rx_code);
     rx_bytes = (long) rx_buf.size();
     return true;
 }
