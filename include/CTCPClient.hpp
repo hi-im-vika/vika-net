@@ -33,13 +33,10 @@ private:
     int _port = 0;
     int _socket_fd = 0;
     bool _socket_ok = false;
-    ssize_t _bytes_moved = 0;
     ssize_t _rx_code = 0;
     ssize_t _tx_code = 0;
     struct sockaddr_in _server_addr{};
     socklen_t _server_addr_len = 0;
-    int _response_time_ms = 0;
-    bool _raw_mode = false;
 
 public:
     CTCPClient();
@@ -48,8 +45,6 @@ public:
     void setdn() const;
     bool do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes);
     bool do_tx(const std::vector<uint8_t> &tx_buf);
-    bool ping();
 
     bool get_socket_status();
-    int get_last_response_time();
 };
