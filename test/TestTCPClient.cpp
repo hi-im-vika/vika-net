@@ -83,8 +83,8 @@ int main(int argc, char *argv[]) {
             timeout_count = std::chrono::steady_clock::now();
         }
         // Send data
-        tx_queue.emplace("G 0");
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
+        tx_queue.emplace("G 1");
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(1));
     }
 
     // tx EOT to stop
