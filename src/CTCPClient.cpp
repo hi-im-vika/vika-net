@@ -84,10 +84,21 @@ bool CTCPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     // reset rx return code
     _rx_code = 0;
 
+    auto timeout_start = std::chrono::steady_clock::now();
+    auto time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - timeout_start).count();
+
     // spins until complete response
-    while (_rx_code <= 0 && _socket_ok) {
+    while (_rx_code <= 0 && _socket_ok && (int) time_since_start < TCP_TIMEOUT) {
         // rx data
+        time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - timeout_start).count();
         _rx_code = recv(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0);
+    }
+
+    if (time_since_start >= TCP_TIMEOUT) {
+        spdlog::warn("TCP Timed out");
+        return false;
     }
 
     if (_rx_code < 0) {

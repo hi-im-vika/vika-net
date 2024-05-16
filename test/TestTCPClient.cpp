@@ -12,6 +12,7 @@
 
 #define PING_TIMEOUT 1000
 #define NET_DELAY 35
+#define TCP_DELAY 30
 
 volatile sig_atomic_t stop;
 volatile bool send_data = true;
@@ -33,7 +34,7 @@ void do_listen(CTCPClient *c, std::queue<std::string> *q) {
         std::string temp = std::string(rx_buf.begin(),rx_buf.begin() + rx_bytes);
         // only add to rx queue if data is not empty
         if(!temp.empty()) q->emplace(temp);
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(1));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(TCP_DELAY));
     }
 }
 
@@ -43,8 +44,9 @@ void do_send(CTCPClient *c, std::queue<std::string> *q) {
 //            spdlog::info("Sending");
             std::vector<uint8_t> tx_buf(q->front().begin(),q->front().end());
             c->do_tx(tx_buf);
+            std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(TCP_DELAY));
         }
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(1));
     }
 }
 
@@ -75,7 +77,7 @@ int main(int argc, char *argv[]) {
 
 //            // acknowledge next data in queue
             spdlog::info("New in RX queue with size: " + std::to_string(rx_queue.front().size()));
-            spdlog::info("Content: " + std::string(rx_queue.front().begin(), rx_queue.front().end()));
+//            spdlog::info("Content: " + std::string(rx_queue.front().begin(), rx_queue.front().end()));
             spdlog::info("Remaining in queue: " + std::to_string(rx_queue.size()));
 
             // reset timeout
@@ -83,8 +85,8 @@ int main(int argc, char *argv[]) {
             timeout_count = std::chrono::steady_clock::now();
         }
         // Send data
-        tx_queue.emplace("G 0");
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
+        tx_queue.emplace("G 1");
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(1));
     }
 
     // tx EOT to stop
