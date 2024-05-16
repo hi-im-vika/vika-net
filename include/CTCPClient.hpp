@@ -9,7 +9,7 @@
 
 #pragma once
 
-#define PING_TIMEOUT 1000
+#define TCP_TIMEOUT 100
 #define UDP_MAX_SIZE 65535
 
 #include <thread>
