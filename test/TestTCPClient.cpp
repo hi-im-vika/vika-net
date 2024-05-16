@@ -46,7 +46,7 @@ void do_send(CTCPClient *c, std::queue<std::string> *q) {
             c->do_tx(tx_buf);
             std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(TCP_DELAY));
         }
-        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(NET_DELAY));
+        std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::milliseconds(1));
     }
 }
 
