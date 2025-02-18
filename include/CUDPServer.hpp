@@ -34,10 +34,43 @@ private:
     std::vector<uint8_t> _recv_buffer;
 
 public:
+    /**
+     * @brief Constructor for CUDPServer
+     */
     CUDPServer();
+
+    /**
+     * @brief Constructor for CUDPServer
+     */
     ~CUDPServer();
+
+    /**
+     * @brief Set up UDP server on specified port
+     * @param port  String with port to listen to
+     */
     void setup(const std::string& port);
+
+    /**
+     * @brief Close and clean up UDP server
+     */
     void setdn() const;
+
+    /**
+     * @brief           Receive data (nonblocking)
+     * Meant to run in a loop in a thread.
+     * @param rx_buf    Buffer to receive data into
+     * @param src       struct containing info about data source
+     * @param rx_bytes  Number of bytes received
+     * @return          True if data was received, false otherwise
+     */
     bool do_rx(std::vector<uint8_t> &rx_buf, sockaddr_in &src, long &rx_bytes);
+
+    /**
+     * @brief           Send data
+     * Meant to run in a loop in a thread.
+     * @param tx_buf    Buffer containing data to send
+     * @param dst       struct containing destination
+     * @return          True if data was sent, false otherwise
+     */
     bool do_tx(const std::vector<uint8_t> &tx_buf, sockaddr_in &dst);
 };
