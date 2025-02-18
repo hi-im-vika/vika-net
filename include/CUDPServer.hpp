@@ -22,16 +22,20 @@
 
 class CUDPServer {
 private:
-    bool init_net();
+    int _port = 0;                          ///< Port to listen on
+    int _socket_fd = 0;                     ///< Socket file descriptor
+    ssize_t _rx_code = 0;                   ///< Size of received data
+    std::queue<std::string> _rx_time_queue; ///< Queue containing times of receive data
+    struct sockaddr_in _server_addr{};      ///< Server info struct
+    struct sockaddr_in _client_addr{};      ///< Client info struct
+    socklen_t _client_addr_len = 0;         ///< Length of client address
+    std::vector<uint8_t> _recv_buffer;      ///< Buffer for received data
 
-    int _port = 0;
-    int _socket_fd = 0;
-    ssize_t _rx_code = 0;
-    std::queue<std::string> _rx_time_queue;
-    struct sockaddr_in _server_addr{};
-    struct sockaddr_in _client_addr{};
-    socklen_t _client_addr_len = 0;
-    std::vector<uint8_t> _recv_buffer;
+    /**
+     * @brief Internal function to init networking stuff
+     * @return
+     */
+    bool init_net();
 
 public:
     /**
