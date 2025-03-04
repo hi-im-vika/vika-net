@@ -13,12 +13,19 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <queue>
+
+#ifdef WIN32
+#include "Winsock2.h"
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#endif
+
 #include <spdlog/spdlog.h>
-#include <queue>
 
 class CUDPServer {
 private:
