@@ -153,7 +153,11 @@ bool CTCPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
     }
 
     // do tcp send
+#ifdef WIN32
+    _tx_code = send(_socket_fd, reinterpret_cast<const char *>(tx_buf.data()), (int) tx_buf.size(), 0);
+#else
     _tx_code = send(_socket_fd, tx_buf.data(), tx_buf.size(), 0);
+#endif
 
     // if problem with sending data, return false
     if (_tx_code < 0) {
