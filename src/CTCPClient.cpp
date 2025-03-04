@@ -118,7 +118,11 @@ bool CTCPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
         // rx data
         time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - timeout_start).count();
+#ifdef WIN32
+        _rx_code = recv(_socket_fd, reinterpret_cast<char *>(rx_raw.data()), (int) rx_raw.capacity(), 0);
+#else
         _rx_code = recv(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0);
+#endif
     }
 
     if (time_since_start >= TCP_TIMEOUT) {
