@@ -19,20 +19,40 @@ bool CTCPClient::init_net() {
         return false;
     }
 
+#ifdef WIN32
+    // initialize winsock
+    if (WSAStartup(0x0101, &_wsdat)) {
+        WSACleanup();
+        return false;
+    }
+#endif
+
     // create new socket, exit on failure
     if ((_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         spdlog::error("Error opening socket");
+#ifdef WIN32
+        WSACleanup();
+#endif
         return false;
     }
 
     spdlog::info("Setting socket to nonblocking.");
-    int flags = fcntl(_socket_fd, F_GETFL, 0);
-
+#ifdef WIN32
+    const long CMD = FIONBIO;
+    u_long arg = 1; // 0 for blocking, 1 for nonblocking
+    if (ioctlsocket(_socket_fd,CMD,&arg) < 0) {
+        spdlog::error("Error setting socket to nonblocking");
+        WSACleanup();
+        return false;
+    }
+#else
     // set nonblocking
+    int flags = fcntl(_socket_fd, F_GETFL, 0);
     if (fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK) < 0) {
         spdlog::error("Error setting socket to nonblocking");
         return false;
     }
+#endif
 
     spdlog::info("Connecting to " + _host + ":" + std::to_string(_port));
 
@@ -66,7 +86,12 @@ void CTCPClient::setup(const std::string &host, const std::string &port) {
 }
 
 void CTCPClient::setdn() const {
+#ifdef WIN32
+    closesocket(_socket_fd);
+    WSACleanup();
+#else
     close(_socket_fd);
+#endif
 }
 
 bool CTCPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
@@ -93,7 +118,11 @@ bool CTCPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
         // rx data
         time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - timeout_start).count();
+#ifdef WIN32
+        _rx_code = recv(_socket_fd, reinterpret_cast<char *>(rx_raw.data()), (int) rx_raw.capacity(), 0);
+#else
         _rx_code = recv(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0);
+#endif
     }
 
     if (time_since_start >= TCP_TIMEOUT) {
@@ -124,7 +153,11 @@ bool CTCPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
     }
 
     // do tcp send
+#ifdef WIN32
+    _tx_code = send(_socket_fd, reinterpret_cast<const char *>(tx_buf.data()), (int) tx_buf.size(), 0);
+#else
     _tx_code = send(_socket_fd, tx_buf.data(), tx_buf.size(), 0);
+#endif
 
     // if problem with sending data, return false
     if (_tx_code < 0) {

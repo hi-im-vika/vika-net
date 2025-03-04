@@ -20,9 +20,20 @@ bool CUDPServer::init_net() {
         return false;
     }
 
+#ifdef WIN32
+    // initialize winsock
+    if (WSAStartup(0x0101, &_wsdat)) {
+        WSACleanup();
+        return false;
+    }
+#endif
+
     // create new socket, exit on failure
     if ((_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         spdlog::error("Error opening socket");
+#ifdef WIN32
+        WSACleanup();
+#endif
         return false;
     }
 
@@ -32,8 +43,13 @@ bool CUDPServer::init_net() {
     _server_addr.sin_addr.s_addr = INADDR_ANY;
 
     if ((bind(_socket_fd, (struct sockaddr *) &_server_addr, sizeof(_server_addr))) < 0) {
-        spdlog::error("Error opening socket");
+        spdlog::error("Error binding to address");
+#ifdef WIN32
+        closesocket(_socket_fd);
+        WSACleanup();
+#else
         close(_socket_fd);
+#endif
         return false;
     }
 
@@ -52,10 +68,19 @@ bool CUDPServer::do_rx(
 
     // listen for client
     _client_addr_len = sizeof(_client_addr);
+#ifdef WIN32
+    _rx_code = recvfrom(_socket_fd, reinterpret_cast<char *>(rx_raw.data()), (int) rx_raw.capacity(), 0, (struct sockaddr*) &_client_addr, &_client_addr_len);
+#else
     _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
+#endif
     if (_rx_code < 0) {
         spdlog::error("Error reading data.");
+#ifdef WIN32
+        closesocket(_socket_fd);
+        WSACleanup();
+#else
         close(_socket_fd);
+#endif
         return false;
     }
 
@@ -94,10 +119,18 @@ bool CUDPServer::do_tx(const std::vector<uint8_t> &tx_buf,
     tx_this.emplace_back(' ');
     tx_this.insert(tx_this.end(),tx_buf.begin(),tx_buf.end());
     // respond to client
-    if (sendto(_socket_fd, tx_this.data(), tx_this.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) <
-        0) {
+#ifdef WIN32
+    if (sendto(_socket_fd, reinterpret_cast<const char *>(tx_this.data()), (int) tx_this.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) < 0) {
+#else
+    if (sendto(_socket_fd, tx_this.data(), tx_this.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) < 0) {
+#endif
         spdlog::error("Error sending data.");
+#ifdef WIN32
+        closesocket(_socket_fd);
+        WSACleanup();
+#else
         close(_socket_fd);
+#endif
         return false;
     }
     return true;
@@ -113,5 +146,10 @@ void CUDPServer::setup(const std::string &port) {
 }
 
 void CUDPServer::setdn() const {
+#ifdef WIN32
+    closesocket(_socket_fd);
+    WSACleanup();
+#else
     close(_socket_fd);
+#endif
 }

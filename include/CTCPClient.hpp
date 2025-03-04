@@ -17,18 +17,28 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <queue>
+
+#ifdef WIN32
+#include "Winsock2.h"
+#include <ws2tcpip.h>
+#else
 #include <sys/fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#endif
+
 #include <spdlog/spdlog.h>
-#include <queue>
 
 class CTCPClient {
 private:
     bool init_net();
 
+#ifdef WIN32
+    WSADATA _wsdat;                         ///< Winsock object
+#endif
     std::string _host;
     int _port = 0;
     int _socket_fd = 0;

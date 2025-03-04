@@ -26,15 +26,40 @@ bool CUDPClient::init_net() {
         return false;
     }
 
+#ifdef WIN32
+    // initialize winsock
+    if (WSAStartup(0x0101, &_wsdat)) {
+        WSACleanup();
+        return false;
+    }
+#endif
+
     // create new socket, exit on failure
     if ((_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         spdlog::error("Error opening socket");
+#ifdef WIN32
+        WSACleanup();
+#endif
         return false;
     }
 
     spdlog::info("Setting socket to nonblocking.");
+#ifdef WIN32
+    const long CMD = FIONBIO;
+    u_long arg = 1; // 0 for blocking, 1 for nonblocking
+    if (ioctlsocket(_socket_fd,CMD,&arg) < 0) {
+        spdlog::error("Error setting socket to nonblocking");
+        WSACleanup();
+        return false;
+    }
+#else
+    // set nonblocking
     int flags = fcntl(_socket_fd, F_GETFL, 0);
-    fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK);
+    if (fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        spdlog::error("Error setting socket to nonblocking");
+        return false;
+    }
+#endif
 
     spdlog::info("Connecting to " + _host + ":" + std::to_string(_port));
 
@@ -68,7 +93,12 @@ void CUDPClient::setup(const std::string &host, const std::string &port) {
 }
 
 void CUDPClient::setdn() const {
+#ifdef WIN32
+    closesocket(_socket_fd);
+    WSACleanup();
+#else
     close(_socket_fd);
+#endif
 }
 
 bool CUDPClient::ping() {
@@ -126,8 +156,15 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     // spins until complete response
     while (_rx_code <= 0 && _socket_ok) {
         // send data
+
+
+#ifdef WIN32
+        _rx_code = recvfrom(_socket_fd, reinterpret_cast<char *>(rx_raw.data()), (int) rx_raw.capacity(), 0,
+                            (struct sockaddr *) &_server_addr, &_server_addr_len);
+#else
         _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0,
                             (struct sockaddr *) &_server_addr, &_server_addr_len);
+#endif
     }
 
     if (_rx_code < 0) {
@@ -149,7 +186,7 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     rx_raw_ss >> data;
 
     // measure response time
-    _response_time_ms = (int) (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - std::stol(time));
+    _response_time_ms = (int) (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - std::stoll(time));
     if (data.empty()) {
         spdlog::error("Malformed data received");
         return false;
@@ -172,8 +209,12 @@ bool CUDPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
     tx_this.insert(tx_this.end(),tx_buf.begin(),tx_buf.end());
 
     // send message to server
-    _tx_code = sendto(_socket_fd, tx_this.data(), tx_this.size(), 0,
+#ifdef WIN32
+    _tx_code = sendto(_socket_fd, reinterpret_cast<const char *>(tx_this.data()), tx_this.size(), 0,
                       (struct sockaddr *) &_server_addr, _server_addr_len);
+#else
+    _tx_code = sendto(_socket_fd, tx_this.data(), tx_this.size(), 0, (struct sockaddr *) &_server_addr, _server_addr_len);
+#endif
 
     // if problem with sending data, return false
     if (_tx_code < 0) {
