@@ -12,7 +12,11 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(spdlog REQUIRED)
 
 add_library(${CMAKE_PROJECT_NAME} STATIC ${SOURCE})
-target_link_libraries(${CMAKE_PROJECT_NAME} spdlog::spdlog)
+if (WIN32)
+    target_link_libraries(${CMAKE_PROJECT_NAME} spdlog::spdlog wsock32 ws2_32)
+else()
+    target_link_libraries(${CMAKE_PROJECT_NAME} spdlog::spdlog)
+endif()
 
 add_executable(test-udp-server test/TestUDPServer.cpp)
 target_link_libraries(test-udp-server ${CMAKE_PROJECT_NAME})
