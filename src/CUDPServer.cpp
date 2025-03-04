@@ -129,5 +129,10 @@ void CUDPServer::setup(const std::string &port) {
 }
 
 void CUDPServer::setdn() const {
+#ifdef WIN32
+    closesocket(_socket_fd);
+    WSACleanup();
+#else
     close(_socket_fd);
+#endif
 }

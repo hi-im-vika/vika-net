@@ -86,7 +86,12 @@ void CTCPClient::setup(const std::string &host, const std::string &port) {
 }
 
 void CTCPClient::setdn() const {
+#ifdef WIN32
+    closesocket(_socket_fd);
+    WSACleanup();
+#else
     close(_socket_fd);
+#endif
 }
 
 bool CTCPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
