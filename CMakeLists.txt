@@ -3,7 +3,7 @@ project(vika-net)
 
 if (WIN32)
     add_compile_definitions(WIN32)
-    add_compile_definitions(_WIN32_WINNT)
+    add_compile_definitions(_WIN32_WINNT=0x0602) # windows 8 and later
 endif ()
 
 file(GLOB SOURCE "src/*.cpp")
