@@ -156,8 +156,15 @@ bool CUDPClient::do_rx(std::vector<uint8_t> &rx_buf, long &rx_bytes) {
     // spins until complete response
     while (_rx_code <= 0 && _socket_ok) {
         // send data
+
+
+#ifdef WIN32
+        _rx_code = recvfrom(_socket_fd, reinterpret_cast<char *>(rx_raw.data()), (int) rx_raw.capacity(), 0,
+                            (struct sockaddr *) &_server_addr, &_server_addr_len);
+#else
         _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0,
                             (struct sockaddr *) &_server_addr, &_server_addr_len);
+#endif
     }
 
     if (_rx_code < 0) {

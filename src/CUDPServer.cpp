@@ -68,10 +68,19 @@ bool CUDPServer::do_rx(
 
     // listen for client
     _client_addr_len = sizeof(_client_addr);
+#ifdef WIN32
+    _rx_code = recvfrom(_socket_fd, reinterpret_cast<char *>(rx_raw.data()), (int) rx_raw.capacity(), 0, (struct sockaddr*) &_client_addr, &_client_addr_len);
+#else
     _rx_code = recvfrom(_socket_fd, rx_raw.data(), rx_raw.capacity(), 0, (struct sockaddr *) &_client_addr, &_client_addr_len);
+#endif
     if (_rx_code < 0) {
         spdlog::error("Error reading data.");
+#ifdef WIN32
+        closesocket(_socket_fd);
+        WSACleanup();
+#else
         close(_socket_fd);
+#endif
         return false;
     }
 
