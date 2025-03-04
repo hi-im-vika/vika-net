@@ -209,8 +209,12 @@ bool CUDPClient::do_tx(const std::vector<uint8_t> &tx_buf) {
     tx_this.insert(tx_this.end(),tx_buf.begin(),tx_buf.end());
 
     // send message to server
-    _tx_code = sendto(_socket_fd, tx_this.data(), tx_this.size(), 0,
+#ifdef WIN32
+    _tx_code = sendto(_socket_fd, reinterpret_cast<const char *>(tx_this.data()), tx_this.size(), 0,
                       (struct sockaddr *) &_server_addr, _server_addr_len);
+#else
+    _tx_code = sendto(_socket_fd, tx_this.data(), tx_this.size(), 0, (struct sockaddr *) &_server_addr, _server_addr_len);
+#endif
 
     // if problem with sending data, return false
     if (_tx_code < 0) {

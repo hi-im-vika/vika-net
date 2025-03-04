@@ -119,10 +119,18 @@ bool CUDPServer::do_tx(const std::vector<uint8_t> &tx_buf,
     tx_this.emplace_back(' ');
     tx_this.insert(tx_this.end(),tx_buf.begin(),tx_buf.end());
     // respond to client
-    if (sendto(_socket_fd, tx_this.data(), tx_this.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) <
-        0) {
+#ifdef WIN32
+    if (sendto(_socket_fd, reinterpret_cast<const char *>(tx_this.data()), (int) tx_this.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) < 0) {
+#else
+    if (sendto(_socket_fd, tx_this.data(), tx_this.size(), 0, (struct sockaddr *) &dst, sizeof(dst)) < 0) {
+#endif
         spdlog::error("Error sending data.");
+#ifdef WIN32
+        closesocket(_socket_fd);
+        WSACleanup();
+#else
         close(_socket_fd);
+#endif
         return false;
     }
     return true;
