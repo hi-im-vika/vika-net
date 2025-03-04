@@ -37,6 +37,9 @@ bool CUDPClient::init_net() {
     // create new socket, exit on failure
     if ((_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         spdlog::error("Error opening socket");
+#ifdef WIN32
+        WSACleanup();
+#endif
         return false;
     }
 
