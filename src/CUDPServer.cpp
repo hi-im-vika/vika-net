@@ -43,8 +43,13 @@ bool CUDPServer::init_net() {
     _server_addr.sin_addr.s_addr = INADDR_ANY;
 
     if ((bind(_socket_fd, (struct sockaddr *) &_server_addr, sizeof(_server_addr))) < 0) {
-        spdlog::error("Error opening socket");
+        spdlog::error("Error binding to address");
+#ifdef WIN32
+        closesocket(_socket_fd);
+        WSACleanup();
+#else
         close(_socket_fd);
+#endif
         return false;
     }
 
