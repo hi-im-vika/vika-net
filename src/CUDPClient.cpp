@@ -26,6 +26,14 @@ bool CUDPClient::init_net() {
         return false;
     }
 
+#ifdef WIN32
+    // initialize winsock
+    if (WSAStartup(0x0101, &_wsdat)) {
+        WSACleanup();
+        return false;
+    }
+#endif
+
     // create new socket, exit on failure
     if ((_socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         spdlog::error("Error opening socket");

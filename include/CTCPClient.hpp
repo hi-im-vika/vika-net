@@ -36,6 +36,9 @@ class CTCPClient {
 private:
     bool init_net();
 
+#ifdef WIN32
+    WSADATA _wsdat;                         ///< Winsock object
+#endif
     std::string _host;
     int _port = 0;
     int _socket_fd = 0;

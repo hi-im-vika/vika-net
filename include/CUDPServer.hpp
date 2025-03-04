@@ -29,6 +29,9 @@
 
 class CUDPServer {
 private:
+#ifdef WIN32
+    WSADATA _wsdat;                         ///< Winsock object
+#endif
     int _port = 0;                          ///< Port to listen on
     int _socket_fd = 0;                     ///< Socket file descriptor
     ssize_t _rx_code = 0;                   ///< Size of received data
