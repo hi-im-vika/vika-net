@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 project(vika-net)
 
+if (WIN32)
+    add_compile_definitions(WIN32)
+endif ()
+
 file(GLOB SOURCE "src/*.cpp")
 file(GLOB HEADER "include/*.hpp")
 
