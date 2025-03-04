@@ -44,8 +44,22 @@ bool CUDPClient::init_net() {
     }
 
     spdlog::info("Setting socket to nonblocking.");
+#ifdef WIN32
+    const long CMD = FIONBIO;
+    u_long arg = 1; // 0 for blocking, 1 for nonblocking
+    if (ioctlsocket(_socket_fd,CMD,&arg) < 0) {
+        spdlog::error("Error setting socket to nonblocking");
+        WSACleanup();
+        return false;
+    }
+#else
+    // set nonblocking
     int flags = fcntl(_socket_fd, F_GETFL, 0);
-    fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK);
+    if (fcntl(_socket_fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        spdlog::error("Error setting socket to nonblocking");
+        return false;
+    }
+#endif
 
     spdlog::info("Connecting to " + _host + ":" + std::to_string(_port));
 
